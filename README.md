@@ -1,62 +1,109 @@
-# 🤖 Python Jarvis Voice Assistant
 
-A Python-based personal voice assistant inspired by Iron Man's JARVIS.
+import speech_recognition as sr
+import pyttsx3
+import datetime
+import webbrowser
+import os
 
-## 🚀 Features
+# Initialize voice engine
+engine = pyttsx3.init()
+engine.setProperty("rate", 170)
+engine.setProperty("volume", 1.0)
 
-- Voice command recognition
-- Text-to-speech responses
-- Open websites and applications
-- Search the internet
-- Tell date and time
-- Basic PC automation
-- Interactive voice communication
+def speak(text):
+    print("JARVIS:", text)
+    engine.say(text)
+    engine.runAndWait()
 
-## 🛠️ Technologies Used
+# Listen to microphone
+def listen():
+    recognizer = sr.Recognizer()
 
-- Python 100%
-- Vosk – Speech Recognition
-- SoundDevice – Microphone Input
-- pyttsx3 – Text-to-Speech
-- PyAutoGUI – PC Automation
+    with sr.Microphone() as source:
+        print("\nListening...")
+        recognizer.adjust_for_ambient_noise(source, duration=0.5)
 
-## 📦 Installation
+        try:
+            audio = recognizer.listen(
+                source, timeout=5, phrase_time_limit=7
+            )
+            command = recognizer.recognize_google(audio)
+            command = command.lower()
+            print("You:", command)
+            return command
 
-Install Python dependencies:
+        except sr.WaitTimeoutError:
+            return ""
 
-```bash
-pip install sounddevice numpy vosk pyttsx3 pyautogui
-```
+        except sr.UnknownValueError:
+            speak("Sorry, I did not understand.")
+            return ""
 
-Download and extract the Vosk English model:
+        except sr.RequestError:
+            speak("Internet connection problem.")
+            return ""
 
-https://alphacephei.com/vosk/models
+# Process voice commands
+def run_assistant(command):
 
-## ▶️ Run the Project
+    if "hello" in command or "hi" in command:
+        speak("Hello! How can I help you?")
 
-```bash
-python GAURAV.py
-```
+    elif "your name" in command:
+        speak("My name is Jarvis, your Python voice assistant.")
 
-## 📁 Project Structure
+    elif "time" in command:
+        time = datetime.datetime.now().strftime("%I:%M %p")
+        speak("The current time is " + time)
 
-```text
-python-jarvis-voice-assistant/
-│
-├── GAURAV.py
-├── README.md
-├── .gitignore
-└── requirements.txt
-```
+    elif "date" in command:
+        date = datetime.datetime.now().strftime("%d %B %Y")
+        speak("Today's date is " + date)
 
-## 🎯 Project Goal
+    elif "open google" in command:
+        speak("Opening Google")
+        webbrowser.open("https://www.google.com")
 
-To develop a personal desktop voice assistant using Python that can recognize voice commands, speak responses, and automate everyday computer tasks.
+    elif "open youtube" in command:
+        speak("Opening YouTube")
+        webbrowser.open("https://www.youtube.com")
 
-## 👨‍💻 Author
+    elif "open facebook" in command:
+        speak("Opening Facebook")
+        webbrowser.open("https://www.facebook.com")
 
-Gaurav
+    elif "open notepad" in command:
+        speak("Opening Notepad")
+        os.system("notepad.exe")
 
-## 📜 License
+    elif "search" in command:
+        query = command.replace("search", "", 1).strip()
+        if query:
+            speak("Searching Google for " + query)
+            webbrowser.open(
+                "https://www.google.com/search?q=" + query.replace(" ", "+")
+            )
 
-MIT License
+    elif "stop" in command or "exit" in command:
+        speak("Goodbye! Have a nice day.")
+        return False
+
+    else:
+        speak("Sorry, this command is not available yet.")
+
+    return True
+
+# Main program
+def main():
+    speak("Hello! I am Jarvis. Your voice assistant is ready.")
+
+    running = True
+
+    while running:
+        command = listen()
+
+        if command:
+            running = run_assistant(command)
+
+if __name__ == "__main__":
+    main()
